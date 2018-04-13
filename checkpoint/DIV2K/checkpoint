@@ -1,0 +1,2 @@
+model_checkpoint_path: "ESPCN-YCbCr-x3"
+all_model_checkpoint_paths: "ESPCN-YCbCr-x3"
