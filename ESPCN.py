@@ -169,9 +169,9 @@ class ESPCN(object):
                 #out = np.round((1+np.tanh(out.eval()[0]))*255/2)
                 out = tf.layers.conv2d(out, 3, 1, strides = 1, padding = 'SAME', 
                         name = 'CONV_OUT', kernel_initializer = tf.contrib.layers.xavier_initializer(), reuse=tf.AUTO_REUSE).eval()[0]
-                out = out.astype(np.uint8)
-                #180331
-                #out = np.clip(out,0,255)
+                #out = out.astype(np.uint8)
+                #180415
+                out = np.clip(out,0,255).astype(np.uint8)
                 PSNR = calc_PSNR(out[self.scale+1:out.shape[0]-self.scale, self.scale+1:out.shape[1]-self.scale,:],
                                  image[self.scale+1:out.shape[0]-self.scale, self.scale+1:out.shape[1]-self.scale,:])
                 PSNR_bicubic = calc_PSNR(
@@ -192,7 +192,9 @@ class ESPCN(object):
                 #180325
                 out = tf.layers.conv2d(out, 1, 1, strides = 1, padding = 'SAME', 
                         name = 'CONV_OUT', kernel_initializer = tf.contrib.layers.xavier_initializer(), reuse=tf.AUTO_REUSE).eval()[0]
-                out = out.astype(np.uint8)
+                #180415
+                out = np.clip(out,0,255).astype(np.uint8)
+                #out = out.astype(np.uint8)
                 out_bicubic = np.split(imresize(LR,[image_w, image_h], interp='bicubic'),3,axis=2)[0]
                 PSNR = calc_PSNR(out[self.scale+1:out.shape[0]-self.scale, self.scale+1:out.shape[1]-self.scale,:],
                                  Y_HR[self.scale+1:out.shape[0]-self.scale, self.scale+1:out.shape[1]-self.scale,:])

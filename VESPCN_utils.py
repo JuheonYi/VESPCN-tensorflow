@@ -55,6 +55,9 @@ def get_batch_VSR(imdb, num_frames_per_video, num_input_frames, batch_size, patc
         flags[video_index] = 1
         #print("video index:", video_index)
         frame_num = np.random.randint(num_frames_per_video[video_index])
+        #180415
+        while frame_num == 0 or frame_num == num_frames_per_video[video_index] -1:
+            frame_num = np.random.randint(num_frames_per_video[video_index])
         H_full = imdb[video_index][0, :, :, :].shape[0]
         W_full = imdb[video_index][0, : ,: ,:].shape[1]
         if augmentation == True:
@@ -66,6 +69,17 @@ def get_batch_VSR(imdb, num_frames_per_video, num_input_frames, batch_size, patc
             tmp = imdb[video_index][frame_index, : , :, :]
             patch = tmp[H:H+int(np.ceil(patch_size[0]/resize_ratio)), W:W+int(np.ceil(patch_size[1]/resize_ratio)),:]
             patch = imresize(patch, [patch_size[0], patch_size[1]], interp = "bicubic")
+            #180414-randomly flip, rotate patch (assuming that the patch shape is square)
+            if augmentation == True:
+                prob = np.random.rand()
+                if prob > 0.5:
+                    patch = np.flip(patch, axis = 0)
+                prob = np.random.rand()
+                if prob > 0.5:
+                    patch = np.flip(patch, axis = 1)
+                prob = np.random.rand()
+                if prob > 0.5:
+                    patch = np.rot90(patch)
             batch_frames[i,:,:,:,j+window] = patch
             batch_frames_LR[i,:,:,:,j+window] = imresize(patch, [int(patch_size[0]/scale), int(patch_size[1]/scale)], interp = "bicubic")
             if j == 0:

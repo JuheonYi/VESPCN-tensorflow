@@ -27,7 +27,7 @@ class VESPCN(object):
         
         self.num_input_frames = config.input_frames
         self.num_videos = config.num_videos
-        self.test_size = 5
+        self.test_size = 49
         
         self.build_model()
         tf.global_variables_initializer().run(session=self.sess)
@@ -45,7 +45,7 @@ class VESPCN(object):
         #original HR
         self.Ground_truth = tf.placeholder(tf.float32, [self.batch_size, self.patch_shape[0], self.patch_shape[0], self.channels], name='ground_truth')
         
-        #for unknown sizes
+        #for unknown sizes (calendar 576x720 city 576x704, foliage 480x720 walk 480x720)
         self.input2 = tf.placeholder(tf.float32, [1, int(480/self.scale), int(720/self.scale), 
                                                  self.channels, self.num_input_frames], name= 'input_test')
 
@@ -55,7 +55,7 @@ class VESPCN(object):
         self.vars = tf.trainable_variables()
         print("Number of variables in network:",len(self.vars),", full list:",self.vars)
         self.optimizer = tf.train.AdamOptimizer(self.config.learning_rate).minimize(self.loss, var_list=self.vars)
-        
+       
         self.output_summary = tf.summary.image("output", self.output)
         self.loss_summary = tf.summary.scalar("loss", self.loss)
         self.summary_merged = tf.summary.merge([self.output_summary, self.loss_summary])
@@ -63,8 +63,12 @@ class VESPCN(object):
         self.saver = tf.train.Saver()
                                                          
     def network(self, LR):
+        #180413 - residual connection 
+        #bicubic = tf.image.resize_images(LR[:,:,:,:,int((self.num_input_frames-1)/2)], size=[LR.shape[1]*self.scale, LR.shape[2]*self.scale], method=tf.image.ResizeMethod.BICUBIC)
+        
         #print(LR.shape)
         LR = tf.reshape(LR, [LR.shape[0], LR.shape[1], LR.shape[2], LR.shape[3]* LR.shape[4]])
+        
         #print(LR.shape)
         feature_tmp = tf.layers.conv2d(LR, 24, 3, strides = 1, padding = 'SAME', name = 'CONV_1',
                                 kernel_initializer = tf.contrib.layers.xavier_initializer(), reuse=tf.AUTO_REUSE)
@@ -80,16 +84,20 @@ class VESPCN(object):
         feature_tmp = tf.nn.relu(feature_tmp)
         feature_out = tf.layers.conv2d(feature_tmp, self.channels*self.scale*self.scale, 3, strides = 1, padding = 'SAME', 
                         name = 'CONV_5', kernel_initializer = tf.contrib.layers.xavier_initializer(), reuse=tf.AUTO_REUSE)
+        #180415-maybe?
+        feature_out = tf.nn.relu(feature_out)
         if self.mode == "RGB":
             feature_out = PS(feature_out, self.scale, color=True)
             feature_out = tf.layers.conv2d(feature_out, 3, 1, strides = 1, padding = 'SAME', 
                         name = 'CONV_OUT', kernel_initializer = tf.contrib.layers.xavier_initializer(), reuse=tf.AUTO_REUSE)
             return feature_out
+            #return tf.add(feature_out, bicubic)
         else:
             feature_out = PS(feature_out, self.scale, color=False)
             feature_out = tf.layers.conv2d(feature_out, 1, 1, strides = 1, padding = 'SAME', 
                         name = 'CONV_OUT', kernel_initializer = tf.contrib.layers.xavier_initializer(), reuse=tf.AUTO_REUSE)
             return feature_out
+            #return tf.add(feature_out, bicubic)
                                                          
     def train(self, config, load = True):
         counter = 1
@@ -103,11 +111,11 @@ class VESPCN(object):
             print(" Training starts from beginning")
 
         for epoch in range(self.config.epoch):
-            if epoch % 200 == 0:
+            if epoch % 500 == 0:
                 print("Loading videos again...")
                 self.imdb = []
                 self.num_frames_per_video = []
-                self.imdb, self.num_frames_per_video = load_videos(50, self.num_videos, 30, self.mode)
+                self.imdb, self.num_frames_per_video = load_videos(self.num_videos, self.num_videos, 20, self.mode)
             batch_idxs = min(len(self.imdb), self.config.train_size) // self.config.batch_size
 
             for idx in range(0, 100):
@@ -169,7 +177,8 @@ class VESPCN(object):
                 out = self.sess.run([self.output2], feed_dict= {self.input2: np.expand_dims(batch_LR[i,:,:,:],axis=0)})
                 output = out[0]
 
-                output = output.astype(np.uint8)
+                #180415
+                output = np.clip(output, 0, 255).astype(np.uint8)
                 out_bicubic_rgb = imresize(np.squeeze(batch_LR[i,:,:,:,int((batch_LR.shape[4]-1)/2)]), 
                                        [batch_LR.shape[1]*self.scale, batch_LR.shape[2]*self.scale], interp='bicubic')
                 imageio.imwrite(result_dir+"/original/original_"+str(i)+".png", np.squeeze(batch_HR[i,:,:,:]).astype(np.uint8))
@@ -189,16 +198,23 @@ class VESPCN(object):
             #                     batch_HR[self.scale+1:out.shape[0]-self.scale, self.scale+1:out.shape[1]-self.scale,:])
             else:        
                 HR_temp =  np.copy(batch_HR)
+                #crop image size divisible to scale
+                HR_temp = HR_temp[:, 0:self.scale*int(HR_temp.shape[1]/self.scale),0:self.scale*int(HR_temp.shape[2]/self.scale),:]
                 batch_HR_Y = np.split(HR_temp, 3, axis=3)[0]#.astype('uint8')
                 batch_HR_Cb = np.split(HR_temp, 3, axis=3)[1]#.astype('uint8')
                 batch_HR_Cr = np.split(HR_temp, 3, axis=3)[2]#.astype('uint8')
                 LR_temp = np.copy(batch_LR)
-                batch_LR_Y = np.split(LR_temp, 3, axis=3)[0].astype(np.float32)
+                batch_LR_Y = np.split(LR_temp, 3, axis=3)[0]#.astype(np.float32)
                 batch_LR_Cb = np.split(LR_temp, 3, axis=3)[1]#.astype('uint8')
                 batch_LR_Cr = np.split(LR_temp, 3, axis=3)[2]#.astype('uint8')
+                #start_time = time.time()
                 out = self.sess.run([self.output2], feed_dict= {self.input2: np.expand_dims(batch_LR_Y[i,:,:,:],axis=0)})
+                #print("runtime:", time.time()-start_time)
                 output = out[0]
-                output = output.astype(np.uint8)
+                #180415
+                #output = np.round(np.clip(output,0,255)).astype(np.uint8)
+                output = np.clip(output,0,255).astype(np.uint8)
+                #output = output.astype(np.uint8)
                 out_bicubic_Y = imresize(np.squeeze(batch_LR_Y[i,:,:,:,int((batch_LR.shape[4]-1)/2)]), 
                                        [batch_LR.shape[1]*self.scale, batch_LR.shape[2]*self.scale], interp='bicubic')
                 PSNR_bicubic = calc_PSNR(out_bicubic_Y, np.squeeze(batch_HR_Y[i,:,:,:]))
