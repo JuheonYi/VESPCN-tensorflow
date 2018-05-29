@@ -90,10 +90,9 @@ def batch_warp2d(imgs, mappings):
         [n_batch, xlen, ylen, n_channel]
     """
     n_batch = tf.shape(imgs)[0]
-    coords = tf.reshape(mappings, [n_batch, 2, -1])
-    #print("1", mappings.shape, coords.shape)
-    x_coords = tf.slice(coords, [0, 0, 0], [-1, 1, -1])
-    y_coords = tf.slice(coords, [0, 1, 0], [-1, 1, -1])
+    coords=tf.split(mappings, 2, 3)
+    x_coords = tf.squeeze(coords[0], axis=3)
+    y_coords = tf.squeeze(coords[1], axis=3)
     x_coords_flat = tf.reshape(x_coords, [-1])
     y_coords_flat = tf.reshape(y_coords, [-1])
     #print("2",imgs.shape, x_coords_flat.shape, y_coords_flat.shape)
