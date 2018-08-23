@@ -102,4 +102,4 @@ def get_batch_Y(dataset_LR, dataset_HR, num, config, start = -1):
 
         LR_batch[i,:,:,:] = preprocess_Y(get_Y(LR_patch)) # pre/post processing function is defined in ops.py
         HR_batch[i,:,:,:] = preprocess_Y(get_Y(HR_patch))
-    return LR_batch
+    return LR_batch, HR_batch
