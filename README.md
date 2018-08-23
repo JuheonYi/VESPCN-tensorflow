@@ -1,4 +1,5 @@
-# ESPCN-TensorFlow
+# VESPCN-TensorFlow (Recently I have restarted updating the codes, and will be done in a few days)
+
 TensorFlow implementation of EPSCN [1]/VESPCN [2] (ongoing)
 
 [1] W. Shi et al, “Real-time single image and video super-resolution using an efficient sub-pixel convolutional neural network,” IEEE CVPR 2016.
