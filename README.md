@@ -1,6 +1,6 @@
-# VESPCN-TensorFlow (Recently I have restarted updating the codes, and will be done in a few days)
+# VESPCN-TensorFlow (Recently I have restarted updating the codes, and will be done in a few days. For one who want the old version codes, please browe the branch before my recent commits)
 
-TensorFlow implementation of EPSCN [1]/VESPCN [2] (ongoing)
+TensorFlow implementation of ESPCN [1]/VESPCN [2] (ongoing)
 
 ## **How to run the code**
 1. ESPCN-main.ipynb (will update main.py soon)
