@@ -6,7 +6,6 @@ import time
 from glob import glob
 import scipy.misc
 import scipy.io
-from scipy.misc import imresize
 
 from random import shuffle
 import imageio
@@ -21,10 +20,8 @@ def load_dataset(config):
     print("Dataset: %s, %d images" %(config.dataset_name, len(HR_list)))
     start_time = time.time()
     print("loading %d LR images..." %len(LR_list))
-    #dataset_LR = [scipy.misc.imread(filename, mode = "RGB") for filename in LR_list]
     dataset_LR = [imageio.imread(filename) for filename in LR_list]
     print("loading %d HR images..." %len(HR_list))
-    #dataset_HR = [scipy.misc.imread(filename, mode = "RGB") for filename in HR_list]
     dataset_HR = [imageio.imread(filename) for filename in HR_list]
     #for now, use cv2.imresize to generate LR
     #dataset_LR = [cv2.resize(HR, dsize = (0,0), fx = 1/config.scale, fy = 1/config.scale, interpolation = cv2.INTER_CUBIC) for HR in dataset_HR]

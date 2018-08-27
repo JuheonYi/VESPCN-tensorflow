@@ -1,4 +1,4 @@
-# VESPCN-TensorFlow (Recently I have restarted updating the codes, and will be done in a few days. For one who want the old version codes, please browe the branch before my recent commits)
+# VESPCN-TensorFlow (Recently I have restarted updating the codes, and will be done in a few days. For one who want the old version codes, please browse the branch before my recent commits in 2018.8)
 
 TensorFlow implementation of ESPCN [1]/VESPCN [2] (ongoing)
 

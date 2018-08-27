@@ -5,7 +5,6 @@ import os.path
 import time
 from glob import glob
 import scipy.misc
-from scipy.misc import imresize
 
 from random import shuffle
 import imageio
@@ -15,7 +14,6 @@ import math
 import scipy.misc
 import scipy.io
 import skimage.color as sc
-from scipy.misc import imresize
 
 from ops import *
 from matplotlib import pyplot as plt
@@ -42,11 +40,6 @@ def save_rgb_img(R, G, B, scale, path):
     img_rgb = np.dstack((R, G, B))
     imageio.imwrite(path, img_rgb)
     return 0
-
-def doresize(x, shape):
-    x = np.copy(x).astype(np.uint8)
-    y = imresize(x, shape, interp='bicubic')
-    return y
 
 def get_Y(frame):
     #frame_ycbcr = cv2.cvtColor(frame, cv2.COLOR_RGB2YCrCb) # This returns Y in [0, 255]

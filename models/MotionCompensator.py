@@ -10,7 +10,7 @@ from utils import *
 from ops import *
 from dataloader_video import *
 from subpixel import *
-rom warp import *
+from warp import *
 
 class MotionCompensator(object):
     def __init__(self, sess, config, dataset_LR, dataset_HR):
